@@ -1,3 +1,5 @@
+# NOTE: This is a fork from the official repository
+
 ![OpenVDB](https://www.openvdb.org/images/openvdb_logo.png)
 
 [![License](https://img.shields.io/github/license/AcademySoftwareFoundation/openvdb)](LICENSE)

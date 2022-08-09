@@ -56,11 +56,11 @@
 ///@{
 /// @brief Library major, minor and patch version numbers
 /// @hideinitializer
-#define OPENVDB_LIBRARY_MAJOR_VERSION_NUMBER ${OpenVDB_MAJOR_VERSION}
+#define OPENVDB_LIBRARY_MAJOR_VERSION_NUMBER 9
 /// @hideinitializer
-#define OPENVDB_LIBRARY_MINOR_VERSION_NUMBER ${OpenVDB_MINOR_VERSION}
+#define OPENVDB_LIBRARY_MINOR_VERSION_NUMBER 1
 /// @hideinitializer
-#define OPENVDB_LIBRARY_PATCH_VERSION_NUMBER ${OpenVDB_PATCH_VERSION}
+#define OPENVDB_LIBRARY_PATCH_VERSION_NUMBER 1
 ///@}
 
 /// @note  This ifndef exists for compatibility with older versions of OpenVDB.
@@ -71,7 +71,7 @@
 #ifndef OPENVDB_ABI_VERSION_NUMBER
 /// @brief The ABI version that OpenVDB was built with
 /// @hideinitializer
-#define OPENVDB_ABI_VERSION_NUMBER ${OPENVDB_ABI_VERSION_NUMBER}
+#define OPENVDB_ABI_VERSION_NUMBER 9
 #endif
 
 /// @brief Library version number string of the form "<major>.<minor>.<patch>"
@@ -79,18 +79,18 @@
 /// want the compile-time version number, not the runtime version number
 /// (although the two are usually the same).
 /// @hideinitializer
-#define OPENVDB_LIBRARY_VERSION_STRING "${OpenVDB_MAJOR_VERSION}.${OpenVDB_MINOR_VERSION}.${OpenVDB_PATCH_VERSION}"
+#define OPENVDB_LIBRARY_VERSION_STRING "9.1.1"
 
 /// @brief Library version number string of the form "<major>.<minor>.<patch>abi<abi>"
 /// @details This is a macro rather than a static constant because we typically
 /// want the compile-time version number, not the runtime version number
 /// (although the two are usually the same).
 /// @hideinitializer
-#define OPENVDB_LIBRARY_ABI_VERSION_STRING "${OpenVDB_MAJOR_VERSION}.${OpenVDB_MINOR_VERSION}.${OpenVDB_PATCH_VERSION}abi${OPENVDB_ABI_VERSION_NUMBER}"
+#define OPENVDB_LIBRARY_ABI_VERSION_STRING "9.1.1abi9"
 
 /// @brief Library version number as a packed integer ("%02x%02x%04x", major, minor, patch)
 /// @hideinitializer
-#define OPENVDB_LIBRARY_VERSION_NUMBER ${OPENVDB_PACKED_VERSION}
+#define OPENVDB_LIBRARY_VERSION_NUMBER 151060481
 
 /// @brief The version namespace name for this library version
 /// @hideinitializer
@@ -111,31 +111,31 @@
 ///
 /// where X, Y and N are the major, minor and ABI version numbers, respectively.
 #if OPENVDB_ABI_VERSION_NUMBER == OPENVDB_LIBRARY_MAJOR_VERSION_NUMBER
-    #define OPENVDB_VERSION_NAME v${OpenVDB_MAJOR_VERSION}_${OpenVDB_MINOR_VERSION}${OPENVDB_NAMESPACE_SUFFIX}
+    #define OPENVDB_VERSION_NAME v9_1
 #else
-    #define OPENVDB_VERSION_NAME v${OpenVDB_MAJOR_VERSION}_${OpenVDB_MINOR_VERSION}abi${OPENVDB_ABI_VERSION_NUMBER}${OPENVDB_NAMESPACE_SUFFIX}
+    #define OPENVDB_VERSION_NAME v9_1abi9
 #endif
 
 /* Denotes whether VDB was built with IMath Half support */
 #ifndef OPENVDB_USE_IMATH_HALF
-#cmakedefine OPENVDB_USE_IMATH_HALF
+/* #undef OPENVDB_USE_IMATH_HALF */
 /* Denotes whether VDB was built against Imath 3+ */
-#cmakedefine OPENVDB_IMATH_VERSION
+/* #undef OPENVDB_IMATH_VERSION */
 #endif
 
 /* Denotes whether VDB was built with Blosc support */
 #ifndef OPENVDB_USE_BLOSC
-#cmakedefine OPENVDB_USE_BLOSC
+#define OPENVDB_USE_BLOSC
 #endif
 
 /* Denotes whether VDB was built with ZLIB support */
 #ifndef OPENVDB_USE_ZLIB
-#cmakedefine OPENVDB_USE_ZLIB
+#define OPENVDB_USE_ZLIB
 #endif
 
 /* Denotes whether VDB was built with explicit template instantiation */
 #ifndef OPENVDB_USE_EXPLICIT_INSTANTIATION
-#cmakedefine OPENVDB_USE_EXPLICIT_INSTANTIATION
+#define OPENVDB_USE_EXPLICIT_INSTANTIATION
 #endif
 
 /* Defines the macros for explicit template declarations. */
@@ -144,11 +144,38 @@
 #define OPENVDB_INSTANTIATE_STRUCT extern template struct OPENVDB_TEMPLATE_IMPORT
 
 /* Defines the macros for explicit template instantiations. */
-#define OPENVDB_REAL_TREE_INSTANTIATE(Function)     @OPENVDB_REAL_TREE_INSTANTIATIONS@
-#define OPENVDB_NUMERIC_TREE_INSTANTIATE(Function)  @OPENVDB_NUMERIC_TREE_INSTANTIATIONS@
-#define OPENVDB_VEC3_TREE_INSTANTIATE(Function)     @OPENVDB_VEC3_TREE_INSTANTIATIONS@
-#define OPENVDB_VOLUME_TREE_INSTANTIATE(Function)   @OPENVDB_VOLUME_TREE_INSTANTIATIONS@
-#define OPENVDB_ALL_TREE_INSTANTIATE(Function)      @OPENVDB_ALL_TREE_INSTANTIATIONS@
+#define OPENVDB_REAL_TREE_INSTANTIATE(Function)      \
+    OPENVDB_INSTANTIATE Function(FloatTree); \
+    OPENVDB_INSTANTIATE Function(DoubleTree);
+#define OPENVDB_NUMERIC_TREE_INSTANTIATE(Function)   \
+    OPENVDB_INSTANTIATE Function(Int32Tree); \
+    OPENVDB_INSTANTIATE Function(Int64Tree); \
+    OPENVDB_INSTANTIATE Function(FloatTree); \
+    OPENVDB_INSTANTIATE Function(DoubleTree);
+#define OPENVDB_VEC3_TREE_INSTANTIATE(Function)      \
+    OPENVDB_INSTANTIATE Function(Vec3STree); \
+    OPENVDB_INSTANTIATE Function(Vec3DTree); \
+    OPENVDB_INSTANTIATE Function(Vec3ITree);
+#define OPENVDB_VOLUME_TREE_INSTANTIATE(Function)    \
+    OPENVDB_INSTANTIATE Function(BoolTree); \
+    OPENVDB_INSTANTIATE Function(Int32Tree); \
+    OPENVDB_INSTANTIATE Function(Int64Tree); \
+    OPENVDB_INSTANTIATE Function(FloatTree); \
+    OPENVDB_INSTANTIATE Function(DoubleTree); \
+    OPENVDB_INSTANTIATE Function(Vec3STree); \
+    OPENVDB_INSTANTIATE Function(Vec3DTree); \
+    OPENVDB_INSTANTIATE Function(Vec3ITree);
+#define OPENVDB_ALL_TREE_INSTANTIATE(Function)       \
+    OPENVDB_INSTANTIATE Function(MaskTree); \
+    OPENVDB_INSTANTIATE Function(points::PointDataTree); \
+    OPENVDB_INSTANTIATE Function(BoolTree); \
+    OPENVDB_INSTANTIATE Function(Int32Tree); \
+    OPENVDB_INSTANTIATE Function(Int64Tree); \
+    OPENVDB_INSTANTIATE Function(FloatTree); \
+    OPENVDB_INSTANTIATE Function(DoubleTree); \
+    OPENVDB_INSTANTIATE Function(Vec3STree); \
+    OPENVDB_INSTANTIATE Function(Vec3DTree); \
+    OPENVDB_INSTANTIATE Function(Vec3ITree);
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
