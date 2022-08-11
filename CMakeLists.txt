@@ -15,9 +15,9 @@ option(COMPILE_EXPLICIT_TEMPLATE_INSTANTIATIONS "Use explicit instantiation for 
 pre-defined list of OpenVDB trees. This makes the core library larger and slower to compile, but speeds up
 the compilation of all dependent code by bypassing the expensive template instantation. If enabled, >40min build time expected." OFF)
 
-set(OPENVDB_DIRECTORY "${CMAKE_SOURCE_DIR}/openvdb/openvdb")
+set(OPENVDB_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/openvdb/openvdb")
 set(OPENVDB_INCLUDE_DIRECTORIES
-  ${CMAKE_SOURCE_DIR}/openvdb/
+  ${CMAKE_CURRENT_SOURCE_DIR}/openvdb/
   ${OPENVDB_DIRECTORY}/
   ${OPENVDB_DIRECTORY}/io/
   ${OPENVDB_DIRECTORY}/math/
