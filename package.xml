@@ -3,7 +3,7 @@
 <package format="2">
 
   <name>openvdb</name>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <description>OpenVDB is an open source software library for working with sparse volumetric data</description>
 
   <license>Proprietary</license>
