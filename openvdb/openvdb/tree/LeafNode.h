@@ -382,6 +382,13 @@ public:
     const ValueType& getValue(const Coord& xyz) const;
     /// Return the value of the voxel at the given linear offset.
     const ValueType& getValue(Index offset) const;
+    
+    /// Return a const ref to the value of this leaf.
+    const ValueType& getValue() const { return mValue; }
+    /// Return a ref to the value of this leaf.
+    ValueType& getValue() { return mValue; }
+    /// Sets the value of this leaf.
+    void setValue(const ValueType& val) { mValue = val; }
 
     /// @brief Return @c true if the voxel at the given coordinates is active.
     /// @param xyz       the coordinates of the voxel to be probed
@@ -907,6 +914,8 @@ private:
     NodeMaskType mValueMask;
     /// Global grid index coordinates (x,y,z) of the local origin of this node
     Coord mOrigin;
+    /// Value stored by the leaf node, representing a 'digest' of the underlying voxel blocks.
+    ValueType mValue;
 #if OPENVDB_ABI_VERSION_NUMBER >= 9
     /// Transient data (not serialized)
     Index32 mTransientData = 0;
