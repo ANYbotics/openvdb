@@ -384,11 +384,16 @@ public:
     const ValueType& getValue(Index offset) const;
     
     /// Return a const ref to the value of this leaf.
-    const ValueType& getValue() const { return mValue; }
+    const ValueType& getNodeValue() const { return mValue; }
     /// Return a ref to the value of this leaf.
-    ValueType& getValue() { return mValue; }
+    ValueType& getNodeValue() { return mValue; }
     /// Sets the value of this leaf.
-    void setValue(const ValueType& val) { mValue = val; }
+    void setNodeValue(const ValueType& val) { mValue = val; }
+
+    /// Get the flag to be updated
+    bool getToBeUpdated() const { return mToBeUpdated; }
+    /// Set the flag to be updated
+    void setToBeUpdated(bool toBeUpdated) { mToBeUpdated = toBeUpdated; }
 
     /// @brief Return @c true if the voxel at the given coordinates is active.
     /// @param xyz       the coordinates of the voxel to be probed
@@ -916,6 +921,8 @@ private:
     Coord mOrigin;
     /// Value stored by the leaf node, representing a 'digest' of the underlying voxel blocks.
     ValueType mValue;
+    /// Flag which indicates this node needs to recompute its value.
+    bool mToBeUpdated{false};
 #if OPENVDB_ABI_VERSION_NUMBER >= 9
     /// Transient data (not serialized)
     Index32 mTransientData = 0;

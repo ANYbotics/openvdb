@@ -17,6 +17,7 @@
 #include "Iterator.h"
 #include "NodeUnion.h"
 #include <tbb/parallel_for.h>
+#include <tbb/spin_mutex.h>
 #include <memory>
 #include <type_traits>
 
@@ -458,6 +459,21 @@ public:
     void readBuffers(std::istream&, bool fromHalf = false);
     void readBuffers(std::istream&, const CoordBBox&, bool fromHalf = false);
 
+    //
+    // Tree operations
+    //
+
+    /// @brief return a reference to the current value of the node.
+    ValueType& getNodeValue() { return mValue; };
+    /// @brief return a constant reference to the current value of the node.
+    const ValueType& getNodeValue() const { return mValue; }
+    /// @brief set the value of the current node
+    void setNodeValue(const ValueType& value) { mValue = value; }
+
+    /// @brief Get the update state of the node.
+    bool getToBeUpdated() const { return mToBeUpdated; }
+    /// @brief Set the update state of the node.
+    void setToBeUpdated(bool toBeUpdated) { mToBeUpdated = toBeUpdated; }
 
     //
     // Aux methods
@@ -825,6 +841,10 @@ protected:
     NodeMaskType mChildMask, mValueMask;
     /// Global grid index coordinates (x,y,z) of the local origin of this node
     Coord mOrigin;
+    /// The value of the node
+    ValueType mValue;
+    /// The flag to be updated
+    bool mToBeUpdated{false};
 #if OPENVDB_ABI_VERSION_NUMBER >= 9
     /// Transient data (not serialized)
     Index32 mTransientData = 0;
