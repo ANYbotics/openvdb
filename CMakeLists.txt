@@ -1,11 +1,8 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.16.3)
 project(openvdb)
 
 # Set compiler flags
 set(CMAKE_CXX_STANDARD 17)
-if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_definitions(-O3)
-endif(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
 add_compile_options(-Wall -Wextra -Wpedantic)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -66,6 +63,13 @@ set(OPENVDB_SRC
 if(${COMPILE_EXPLICIT_TEMPLATE_INSTANTIATIONS})
   list(PREPEND OPENVDB_SRC ${OPENVDB_DIRECTORY}/tools/compilation_unit.cc)
 endif()
+
+if("$ENV{ROS_VERSION}" STREQUAL "1")
+
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_definitions(-O3)
+endif(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+
 file(GLOB_RECURSE OPENVDB_HEADERS "${OPENVDB_DIRECTORY}/*.h")
 
 # Find catkin macros and libraries
@@ -297,3 +301,226 @@ if(cmake_clang_tools_FOUND)
     DISABLE_CLANG_FORMAT
   )
 endif(cmake_clang_tools_FOUND)
+
+else() # ROS version 2
+
+set(PACKAGE_DEPENDENCIES
+  Threads 
+  Blosc
+  ZLIB
+  )
+
+find_package(ament_cmake REQUIRED)
+
+foreach(PKG ${PACKAGE_DEPENDENCIES})
+  find_package(${PKG} REQUIRED)
+endforeach()
+
+include(cmake/configExtras.cmake)
+
+########################
+## Library definition ##
+########################
+
+add_library(${PROJECT_NAME}_openvdb SHARED
+  ${OPENVDB_SRC}
+  )
+
+target_include_directories(${PROJECT_NAME}_openvdb
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/openvdb/openvdb>
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/openvdb>
+    $<INSTALL_INTERFACE:include>
+  )
+
+target_compile_options(${PROJECT_NAME}_openvdb
+  PRIVATE
+    "$<$<NOT:$<CONFIG:Debug>>:-O3>"
+  )
+
+target_compile_definitions(${PROJECT_NAME}_openvdb
+  PRIVATE
+    $<$<BOOL:${COMPILE_EXPLICIT_TEMPLATE_INSTANTIATIONS}>:OPENVDB_USE_EXPLICIT_INSTANTIATION=1> 
+  )
+
+target_link_libraries(${PROJECT_NAME}_openvdb
+  Blosc::blosc
+  Boost::iostreams
+  TBB::tbb
+  Threads::Threads
+  ZLIB::ZLIB
+  )
+
+ament_target_dependencies(${PROJECT_NAME}_openvdb ${PACKAGE_DEPENDENCIES})
+
+#############
+## Install ##
+#############
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/openvdb/openvdb/
+  DESTINATION
+    include/openvdb
+  FILES_MATCHING
+    PATTERN "*.h"
+    PATTERN "unittest" EXCLUDE
+  )
+
+install(TARGETS ${PROJECT_NAME}_openvdb
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  )
+
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_dependencies(${PACKAGE_DEPENDENCIES})
+
+##############
+##   Test   ##
+##############
+
+if(BUILD_TESTING)
+
+  find_package(ament_cmake_gtest REQUIRED)
+
+  set(OPENVDB_TESTS_SRC
+    ${OPENVDB_DIRECTORY}/unittest/TestBBox.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestCoord.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestIndexFilter.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestIndexIterator.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestInit.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestInt32Metadata.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestInt64Metadata.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestLinearInterp.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestMaps.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestMath.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestName.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestNodeMask.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestQuadraticInterp.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestQuantizedUnitVec.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestQuat.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestStats.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestTransform.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestTypes.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestUtil.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestVec2Metadata.cc
+    ${OPENVDB_DIRECTORY}/unittest/TestVec3Metadata.cc)
+
+  if(${COMPILE_EXPLICIT_TEMPLATE_INSTANTIATIONS})
+    list(APPEND OPENVDB_TESTS_SRC
+      ${OPENVDB_DIRECTORY}/unittest/TestActivate.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestAttributeArray.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestAttributeArrayString.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestAttributeGroup.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestAttributeSet.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestClip.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestConjGradient.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestCount.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestCpt.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestCurl.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestDelayedLoadMetadata.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestDense.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestDenseSparseTools.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestDiagnostics.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestDivergence.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestDoubleMetadata.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestExceptions.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestFastSweeping.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestFile.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestFilter.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestFindActiveValues.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestFloatMetadata.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestGradient.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestGrid.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestGridBbox.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestGridDescriptor.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestGridIO.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestGridTransformer.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestInternalOrigin.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestLaplacian.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestLeaf.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestLeafBool.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestLeafIO.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestLeafManager.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestLeafMask.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestLeafOrigin.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestLevelSetRayIntersector.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestLevelSetUtil.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestMat4Metadata.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestMeanCurvature.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestMerge.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestMeshToVolume.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestMetadata.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestMetadataIO.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestMetaMap.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestMorphology.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestMultiResGrid.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestNodeIterator.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestNodeManager.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestNodeVisitor.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestParticleAtlas.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestParticlesToLevelSet.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointAdvect.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointAttribute.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointConversion.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointCount.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointDataLeaf.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointDelete.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointGroup.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointIndexGrid.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointInstantiate.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointMask.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointMove.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointPartitioner.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointRasterizeFrustum.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointRasterizeSDF.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointRasterizeTrilinear.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointSample.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointScatter.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointStatistics.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPointsToMask.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPoissonSolver.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPotentialFlow.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestPrePostAPI.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestRay.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestStream.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestStreamCompression.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestStringMetadata.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestTools.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestTopologyToLevelSet.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestTree.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestTreeCombine.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestTreeGetSetValues.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestTreeIterators.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestTreeVisitor.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestValueAccessor.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestVolumeRayIntersector.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestVolumeToMesh.cc
+      ${OPENVDB_DIRECTORY}/unittest/TestVolumeToSpheres.cc)
+  endif()
+
+  ament_add_gtest(test_${PROJECT_NAME}_openvdb
+    ${OPENVDB_TESTS_SRC}
+    ${OPENVDB_DIRECTORY}/unittest/main.cc
+    )
+
+  target_link_libraries(test_${PROJECT_NAME}_openvdb
+    ${PROJECT_NAME}_openvdb
+    )
+
+  ###################
+  ## Code_coverage ##
+  ###################
+
+  find_package(cmake_code_coverage QUIET)
+
+  if(cmake_code_coverage_FOUND)
+    add_gtest_coverage(TEST_BUILD_TARGETS test_${PROJECT_NAME}_openvdb)
+  endif()
+
+endif()
+
+ament_package(CONFIG_EXTRAS cmake/configExtras.cmake)
+
+endif()
