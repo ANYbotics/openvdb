@@ -376,6 +376,12 @@ install(TARGETS ${PROJECT_NAME}_openvdb
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(${PACKAGE_DEPENDENCIES})
 
+# Install FindBlosc.cmake so other packages can use it
+install(FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindBlosc.cmake
+  DESTINATION share/${PROJECT_NAME}/cmake
+  )
+
 ##############
 ##   Test   ##
 ##############
@@ -500,9 +506,10 @@ if(BUILD_TESTING)
       ${OPENVDB_DIRECTORY}/unittest/TestVolumeToSpheres.cc)
   endif()
 
-  ament_add_gtest(test_${PROJECT_NAME}_openvdb
+  ament_add_gtest(test_${PROJECT_NAME}_openvdb 
     ${OPENVDB_TESTS_SRC}
     ${OPENVDB_DIRECTORY}/unittest/main.cc
+    TIMEOUT 300
     )
 
   target_link_libraries(test_${PROJECT_NAME}_openvdb
