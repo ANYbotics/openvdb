@@ -10,7 +10,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 option(COMPILE_EXPLICIT_TEMPLATE_INSTANTIATIONS "Use explicit instantiation for all supported classes and methods against a
 pre-defined list of OpenVDB trees. This makes the core library larger and slower to compile, but speeds up
-the compilation of all dependent code by bypassing the expensive template instantation. If enabled, >40min build time expected." OFF)
+the compilation of all dependent code by bypassing the expensive template instantation. If enabled, >40min build time expected." ON)
 
 set(OPENVDB_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/openvdb/openvdb")
 set(OPENVDB_INCLUDE_DIRECTORIES
